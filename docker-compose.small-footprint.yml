@@ -1,0 +1,60 @@
+# Optional resource-constrained overlay for Oracle Cloud Always Free (or any small VPS).
+#
+# Use this if you're NOT dedicating the full Ampere A1 allowance (4 OCPU / 24GB) to this
+# app alone — e.g. you're sharing the Always Free budget with other projects on the same
+# tenancy, or running on a smaller instance (1 OCPU / 6GB is a comfortable target this
+# overlay is tuned for, with room to spare for the OS itself).
+#
+# Apply it alongside the main file (it does NOT apply automatically, since it deliberately
+# caps resources — you opt in explicitly):
+#
+#   docker compose -f docker-compose.yml -f docker-compose.small-footprint.yml up -d
+#
+# Skip this file entirely if you're running on the full 4 OCPU / 24GB Always Free instance
+# dedicated to this app alone — the defaults in docker-compose.yml already fit comfortably
+# there with plenty of headroom.
+#
+# Total budget with this overlay: roughly 1.2-1.5GB RAM under normal load, leaving the rest
+# of a 6GB instance free for the OS, SSH, and any other small workloads.
+
+services:
+  db:
+    mem_limit: 768m
+    mem_reservation: 256m
+    cpus: 0.75
+    # Postgres' defaults assume much more RAM than a small instance has to spare.
+    # These flags cut its working-memory footprint for a single small organization's
+    # worth of data — fine for hundreds of members and thousands of donations/year,
+    # but bump shared_buffers/max_connections back up if you outgrow this.
+    command: >
+      postgres
+      -c shared_buffers=128MB
+      -c effective_cache_size=384MB
+      -c work_mem=4MB
+      -c maintenance_work_mem=32MB
+      -c max_connections=40
+
+  api:
+    mem_limit: 450m
+    mem_reservation: 150m
+    cpus: 0.75
+    environment:
+      # Workstation GC (instead of the container-default Server GC) trades a little
+      # throughput for a much smaller memory footprint — the right tradeoff on 1-2 cores.
+      DOTNET_gcServer: "0"
+      DOTNET_GCHeapHardLimit: "0x12000000" # ~300MB hard ceiling for the managed heap
+      Logging__LogLevel__Default: "Warning"
+
+  client:
+    mem_limit: 96m
+    mem_reservation: 32m
+    cpus: 0.25
+
+  edge:
+    mem_limit: 128m
+    mem_reservation: 32m
+    cpus: 0.5
+
+  certbot:
+    mem_limit: 96m
+    cpus: 0.25

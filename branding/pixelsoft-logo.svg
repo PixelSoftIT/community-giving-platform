@@ -1,0 +1,35 @@
+<svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PixelSoft logo">
+  <defs>
+    <style>
+      .ps-word { font-family: 'Poppins', 'Quicksand', 'Segoe UI', system-ui, sans-serif; font-weight: 800; }
+    </style>
+  </defs>
+
+  <!-- Icon: a "P" monogram built from rounded pixel-blocks, echoing the PixelSoft Care Services
+       heart mark's visual language (same block size/rounding/gradient shading) without reusing
+       the health-specific heart+cross, since this is the parent brand mark. -->
+  <g>
+    <!-- row 0: top bar of the P -->
+    <rect x="0"   y="4"   width="36" height="36" rx="9" fill="#3FB1A3"/>
+    <rect x="44"  y="4"   width="36" height="36" rx="9" fill="#1E9A90"/>
+    <rect x="88"  y="4"   width="36" height="36" rx="9" fill="#157A70"/>
+
+    <!-- row 1: sides of the bowl -->
+    <rect x="0"   y="48"  width="36" height="36" rx="9" fill="#229286"/>
+    <rect x="88"  y="48"  width="36" height="36" rx="9" fill="#0B4670"/>
+
+    <!-- row 2: bottom of the bowl -->
+    <rect x="0"   y="92"  width="36" height="36" rx="9" fill="#157A70"/>
+    <rect x="44"  y="92"  width="36" height="36" rx="9" fill="#1E9A90"/>
+    <rect x="88"  y="92"  width="36" height="36" rx="9" fill="#3FB1A3"/>
+
+    <!-- rows 3-4: stem of the P -->
+    <rect x="0"   y="136" width="36" height="36" rx="9" fill="#0B4670"/>
+    <rect x="0"   y="180" width="36" height="36" rx="9" fill="#157A70"/>
+  </g>
+
+  <!-- Wordmark: two-tone treatment matching the subsidiary logo (teal "Pixel" + navy "Soft") -->
+  <text x="168" y="150" class="ps-word" font-size="108">
+    <tspan fill="#1E9A90">Pixel</tspan><tspan fill="#0B4670">Soft</tspan>
+  </text>
+</svg>

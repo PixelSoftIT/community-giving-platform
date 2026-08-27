@@ -1,0 +1,86 @@
+# Render Blueprint — deploys the whole stack (database + backend API + frontend) in one go.
+#
+# How to use: push this repo to GitHub, then in the Render dashboard choose
+# New -> Blueprint, connect the repo, and Render reads this file automatically.
+# It will ask you to fill in the handful of secrets marked "sync: false" below
+# (Stripe keys, email/SMS credentials) before the first deploy.
+#
+# Service names below (community-giving-api, community-giving-app) determine the
+# free onrender.com URLs Render assigns — change them here if you want different names,
+# consistently, since AllowedOrigins/VITE_API_URL reference them directly.
+
+databases:
+  - name: community-giving-db
+    databaseName: communitygiving
+    plan: basic-256mb   # paid plan: persistent, no 30-day expiry (see render docs for current pricing)
+    region: oregon       # pick whichever region is closest to your users; keep all three services in the same region
+
+services:
+  # ---------- Backend API ----------
+  - type: web
+    name: community-giving-api
+    runtime: docker
+    region: oregon
+    plan: starter         # paid plan: always-on, no cold-start sleep
+    dockerfilePath: ./backend/CommunityGiving.Api/Dockerfile
+    dockerContext: ./backend/CommunityGiving.Api
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: community-giving-db
+          property: connectionString
+      - key: Jwt__Key
+        generateValue: true   # Render generates a strong random secret automatically
+      - key: Jwt__Issuer
+        value: CommunityGivingApi
+      - key: Jwt__Audience
+        value: CommunityGivingClient
+      - key: Stripe__SecretKey
+        sync: false   # you'll be prompted to paste this in the Render dashboard
+      - key: Stripe__WebhookSecret
+        sync: false
+      - key: Email__SmtpHost
+        sync: false
+      - key: Email__SmtpPort
+        value: "587"
+      - key: Email__SmtpUsername
+        sync: false
+      - key: Email__SmtpPassword
+        sync: false
+      - key: Email__FromAddress
+        sync: false
+      - key: Email__FromName
+        value: Our Community
+      - key: Sms__TwilioAccountSid
+        sync: false
+      - key: Sms__TwilioAuthToken
+        sync: false
+      - key: Sms__TwilioFromNumber
+        sync: false
+      - key: AllowedOrigins__0
+        value: https://community-giving-app.onrender.com   # update if you rename the frontend service or add a custom domain
+
+  # ---------- Frontend (React) ----------
+  - type: web
+    name: community-giving-app
+    runtime: static
+    # No `region` here — static sites are served from Render's global CDN, not a
+    # specific region, so this field isn't valid for them (it is for the database
+    # and the Docker web service above).
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    routes:
+      # React Router client-side routing: any path not matching a real file falls back to index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: VITE_API_URL
+        value: https://community-giving-api.onrender.com   # update if you rename the backend service or add a custom domain
+      - key: VITE_STRIPE_PUBLISHABLE_KEY
+        sync: false
